@@ -21,12 +21,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-9x-17np2#ua0ni1v9mcctq_68v_3ox=&!ngv))hag&_#*8ozfg'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'takecare-local-development-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get(
+    'DJANGO_ALLOWED_HOSTS',
+    'localhost,127.0.0.1'
+).split(',')
 
 
 # Application definition
@@ -49,6 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -82,14 +86,13 @@ WSGI_APPLICATION = 'takecare.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        #'NAME': BASE_DIR / 'db.sqlite3',
-        'NAME':'takecare',
-        'HOST':'localhost',
-        'USER':'root',
-        'PASSWORD':'',
-        'PORT':'3306',
-        'OPTIONS':{
-            'init_command':"SET sql_mode='STRICT_TRANS_TABLES'",
+        'NAME': os.environ.get('DB_NAME', 'takecare'),
+        'USER': os.environ.get('DB_USER', 'takecareuser'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'takecarepassword'),
+        'HOST': os.environ.get('DB_HOST', 'db'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         }
     }
 }
@@ -132,8 +135,10 @@ USE_TZ = True
 
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATIC_DIR =os.path.join(BASE_DIR,"static")
 STATICFILES_DIRS=[STATIC_DIR,]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
